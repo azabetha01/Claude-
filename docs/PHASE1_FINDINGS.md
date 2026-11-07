@@ -1,7 +1,7 @@
 # Phase 1: Discovery Findings
 
 Project: 4EverFootball Wi-Fi Management System (`wifi.4everfootball.com`)
-Status: Phase 1 done. Waiting for approval and answers to the blocking questions in section 6 before Phase 2.
+Status: Phase 1 done (updated for the revised brief). Waiting for approval to start Phase 2. Phase 3 also needs the router details (Q1).
 
 Related drafts: [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`ROUTER_INTEGRATION.md`](../ROUTER_INTEGRATION.md).
 
@@ -20,9 +20,13 @@ Related drafts: [`ARCHITECTURE.md`](../ARCHITECTURE.md), [`ROUTER_INTEGRATION.md
 
 Because I couldn't inspect the existing 4EverFootball repo, I make **no assumptions about its backend, database or auth**, as the brief asked. Nothing in it can be modified from here, so there's no risk to existing production workflows.
 
+> **Revised brief (second version):** the path `/home/vagrant/4everfootball` and the instruction to inspect it were removed. The brief now says the app may be **either** an independent app inside the monorepo **or** a separate repository. The decision below is made on that basis. Inspecting the main repo is no longer a prerequisite.
+
 ## 2. Monorepo vs separate repository
 
-**Recommendation: a separate repository** (this one, made private, or a new private `4everfootball-wifi`), structured internally as its own small pnpm workspace.
+**Decision: build it as a separate repository** (this one, made private), structured as its own small pnpm workspace whose layout matches the monorepo's `apps/` convention. If you later want it inside the 4EverFootball monorepo, `apps/wifi-api`, `apps/wifi-web` and `apps/wifi-agent` can be moved in as-is. They won't depend on, or change, `apps/mobile` or any other existing app.
+
+**Node version:** the app's production runtime is pinned in its own Docker image (Node 24 LTS), so it doesn't depend on the developer machine's Node. Node 20.20.2 is end-of-life, so local development needs Node 22 or later. If the app moves into the monorepo, that upgrade would apply to the monorepo's dev environment too, or the Wi-Fi apps would be run through Docker only.
 
 Reasons:
 - **Blast radius.** The app controls physical network access. Keeping it out of the main monorepo keeps its secrets, CI permissions and deploy credentials away from the mobile app's pipeline, and the reverse.
@@ -81,7 +85,7 @@ Detailed in [`ROUTER_INTEGRATION.md`](../ROUTER_INTEGRATION.md). Summary:
 
 **Blocking:**
 1. **Q1 – Router hardware.** What are the router's exact make, model, hardware version and firmware version? Is it the main ISP gateway or a separate access point? Is there a controller (UniFi or Omada)?
-2. **Q2 – Existing repo.** Do you want me to inspect `4everfootball`? If so, push it to GitHub and add it to this session. Otherwise, do you confirm the standalone-repo approach?
+2. ~~**Q2 – Existing repo.**~~ Resolved by the revised brief: separate repository, structured so it can move into the monorepo later.
 3. **Q3 – LAN agent host.** Is there an always-on device on the router's network that can run the agent (Raspberry Pi, mini-PC, NAS), or should the agent run on the router itself (OpenWrt only)?
 
 **Needed by Phase 6, but useful now:**
